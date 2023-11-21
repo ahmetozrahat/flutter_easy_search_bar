@@ -43,6 +43,9 @@ class EasySearchBar<T> extends StatefulWidget implements PreferredSizeWidget {
   /// When search is closed, this method returns an empty value to clear the current search
   final Function(String) onSearch;
 
+  /// Can be used to determine auto-search functionality when the search text changes
+  final bool? searchOnChange;
+
   /// Can be used to add leading icon to AppBar
   final Widget? leading;
 
@@ -146,6 +149,7 @@ class EasySearchBar<T> extends StatefulWidget implements PreferredSizeWidget {
       {Key? key,
       required this.title,
       required this.onSearch,
+      this.searchOnChange = true,
       this.suggestionBuilder,
       this.leading,
       this.actions = const [],
@@ -230,7 +234,9 @@ class _EasySearchBarState<T> extends State<EasySearchBar<T>>
     ));
     _searchController.addListener(() async {
       if (_focusNode.hasFocus) {
-        widget.onSearch(_searchController.text);
+        if (widget.searchOnChange!) {
+          widget.onSearch(_searchController.text);
+        }
         if (widget.suggestions != null) {
           openOverlay();
           updateSyncSuggestions(_searchController.text);
@@ -505,46 +511,42 @@ class _EasySearchBarState<T> extends State<EasySearchBar<T>>
                                                     child: widget.title,
                                                   ))),
                                           ...List.generate(
-                                            widget.actions.length + 1,
-                                            (index) {
-                                              if (widget.actions.length ==
-                                                          index &&
-                                                      !widget
-                                                          .putActionsOnRight ||
-                                                  index == 0 &&
-                                                      widget
-                                                          .putActionsOnRight) {
-                                                return IconTheme(
-                                                    data: iconTheme,
-                                                    child: IconButton(
-                                                        icon: const Icon(
-                                                            Icons.search),
-                                                        iconSize:
-                                                            iconTheme.size ??
-                                                                24,
-                                                        onPressed: () {
-                                                          _controller.forward();
-                                                          _focusNode
-                                                              .requestFocus();
-
-                                                          if (widget
-                                                              .openOverlayOnSearch) {
-                                                            openOverlay();
-                                                          }
-                                                        },
-                                                        tooltip:
-                                                            MaterialLocalizations
-                                                                    .of(context)
-                                                                .searchFieldLabel));
-                                              }
+                                              widget.actions.length + 1,
+                                              (index) {
+                                            if (widget.actions.length ==
+                                                        index &&
+                                                    !widget.putActionsOnRight ||
+                                                index == 0 &&
+                                                    widget.putActionsOnRight) {
                                               return IconTheme(
                                                   data: iconTheme,
-                                                  child: widget.actions[
-                                                      widget.putActionsOnRight
-                                                          ? (index - 1)
-                                                          : index]);
+                                                  child: IconButton(
+                                                      icon: const Icon(
+                                                          Icons.search),
+                                                      iconSize:
+                                                          iconTheme.size ?? 24,
+                                                      onPressed: () {
+                                                        _controller.forward();
+                                                        _focusNode
+                                                            .requestFocus();
+
+                                                        if (widget
+                                                            .openOverlayOnSearch) {
+                                                          openOverlay();
+                                                        }
+                                                      },
+                                                      tooltip:
+                                                          MaterialLocalizations
+                                                                  .of(context)
+                                                              .searchFieldLabel));
                                             }
-                                          )
+                                            return IconTheme(
+                                                data: iconTheme,
+                                                child: widget.actions[
+                                                    widget.putActionsOnRight
+                                                        ? (index - 1)
+                                                        : index]);
+                                          })
                                         ])),
                                 Positioned(
                                     right: 0,
